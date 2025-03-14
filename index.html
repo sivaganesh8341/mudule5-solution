@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="RestaurantApp">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Restaurant SignUp</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-route.min.js"></script>
+
+  <style>
+    body {
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: white;
+      font-family: 'Poppins', sans-serif;
+    }
+    .navbar {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 15px;
+    }
+    .navbar a {
+      color: white;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+    .navbar a:hover {
+      color: #f39c12;
+    }
+    .container {
+      max-width: 500px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(15px);
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      margin-top: 50px;
+      animation: fadeIn 1s ease-in-out;
+    }
+    .btn-primary {
+      width: 100%;
+      background: #f39c12;
+      border: none;
+      transition: 0.3s;
+    }
+    .btn-primary:hover {
+      background: #e67e22;
+    }
+    .form-control {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      transition: all 0.3s ease;
+      color: white;
+    }
+    .form-control:focus {
+      background: rgba(255, 255, 255, 0.3);
+      border-color: #f39c12;
+      box-shadow: 0 0 10px rgba(243, 156, 18, 0.5);
+    }
+    .error {
+      color: #ff6b6b;
+      font-size: 0.9em;
+      animation: fadeIn 0.5s;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      50% { transform: translateX(5px); }
+      75% { transform: translateX(-5px); }
+      100% { transform: translateX(0); }
+    }
+    .shake {
+      animation: shake 0.5s;
+    }
+    img {
+      max-width: 100%;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg text-center">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Restaurant</a>
+      <div class="navbar-nav">
+        <a class="nav-link" href="#!signup">Sign Up</a>
+        <a class="nav-link" href="#!myinfo">My Info</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container mt-4">
+    <div ng-view></div>
+  </div>
+
+  <script>
+    (function() {
+      var app = angular.module("RestaurantApp", ["ngRoute"]);
+
+      // Configure Routes
+      app.config(["$routeProvider", function($routeProvider) {
+        $routeProvider
+          .when("/signup", {
+            template: `
+              <h2 class="text-center">Sign Up</h2>
+              <form name="signupForm" ng-submit="submitForm()" novalidate class="mt-3">
+                <div class="mb-3">
+                  <label class="form-label">First Name:</label>
+                  <input type="text" class="form-control" ng-model="user.firstName" name="firstName" required>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Last Name:</label>
+                  <input type="text" class="form-control" ng-model="user.lastName" name="lastName" required>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Email:</label>
+                  <input type="email" class="form-control" placeholder="yourname@example.com" ng-model="user.email" name="email" required>
+                  <div ng-show="signupForm.email.$touched && signupForm.email.$invalid" class="error">
+                    Please enter a valid email address.
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Phone:</label>
+                  <input type="tel" class="form-control" placeholder="1234567890" ng-model="user.phone" name="phone" ng-pattern="/^[0-9]{10}$/" required>
+                  <div ng-show="signupForm.phone.$touched && signupForm.phone.$error.pattern" class="error">
+                    Please enter a 10-digit phone number.
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">
+                    Favorite Menu Item <small>(e.g., L1)</small>:
+                  </label>
+                  <input type="text" class="form-control" placeholder="e.g., L1" ng-model="user.favoriteItem" ng-class="{'shake': invalidItem}" required>
+                  <div ng-show="invalidItem" class="error">
+                    No such menu number exists. Expected format: Letter + Number (e.g., L1).
+                  </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" ng-disabled="signupForm.$invalid || loading">
+                  <span ng-if="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  Submit
+                </button>
+              </form>
+
+              <div ng-show="loading" class="text-center mt-3">
+                <div class="spinner-border text-warning" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+              </div>
+
+              <p class="text-success mt-3 text-center">{{message}}</p>
+            `,
+            controller: "SignUpController"
+          })
+          .when("/myinfo", {
+            template: `
+              <h2 class="text-center">My Info</h2>
+              <div ng-if="user">
+                <p><strong>Name:</strong> {{user.firstName}} {{user.lastName}}</p>
+                <p><strong>Email:</strong> {{user.email}}</p>
+                <p><strong>Phone:</strong> {{user.phone}}</p>
+                
+                <h3>Favorite Dish:</h3>
+                <div ng-if="user.favoriteItemDetails">
+                  <p><strong>Name:</strong> {{user.favoriteItemDetails.name}}</p>
+                  <p><strong>Description:</strong> {{user.favoriteItemDetails.description}}</p>
+                  <img ng-src="{{user.favoriteItemDetails.image}}" class="img-fluid">
+                </div>
+              </div>
+
+              <div ng-if="!user">
+                <p class="text-center">Not Signed Up Yet. <a href="#!signup">Sign up Now!</a></p>
+              </div>
+            `,
+            controller: "MyInfoController"
+          })
+          .otherwise({ redirectTo: "/signup" });
+      }]);
+
+      // Service to store user data
+      app.service("UserService", function() {
+        var user = null;
+        this.saveUser = function(userData) {
+          user = userData;
+        };
+        this.getUser = function() {
+          return user;
+        };
+      });
+
+      // SignUp Controller
+      app.controller("SignUpController", ["$scope", "$http", "UserService", function($scope, $http, UserService) {
+        $scope.user = {};
+        $scope.message = "";
+        $scope.invalidItem = false;
+        $scope.loading = false;
+
+        $scope.submitForm = function() {
+          var shortName = $scope.user.favoriteItem;
+          if (!shortName) return;
+          $scope.loading = true;
+          // Convert input (e.g., "L1") to proper API parameters.
+          var category = shortName.charAt(0);
+          var numPart = parseInt(shortName.slice(1), 10);
+          
+          // Check if numeric part is valid
+          if (isNaN(numPart)) {
+            $scope.invalidItem = true;
+            $scope.loading = false;
+            return;
+          }
+          // Subtract 1 as per instructions: L1 corresponds to menu item index 0.
+          var menuNumber = numPart - 1;
+          var apiUrl = `https://coursera-jhu-default-rtdb.firebaseio.com/menu_items/${category}/menu_items/${menuNumber}.json`;
+
+          $http.get(apiUrl).then(
+            function(response) {
+              $scope.loading = false;
+              if (response.data) {
+                $scope.invalidItem = false;
+                $scope.user.favoriteItemDetails = response.data;
+                UserService.saveUser($scope.user);
+                $scope.message = "Your information has been saved!";
+              } else {
+                $scope.invalidItem = true;
+                $scope.message = "";
+              }
+            },
+            function() {
+              $scope.loading = false;
+              $scope.invalidItem = true;
+              $scope.message = "";
+            }
+          );
+        };
+      }]);
+
+      // MyInfo Controller
+      app.controller("MyInfoController", ["$scope", "UserService", function($scope, UserService) {
+        $scope.user = UserService.getUser();
+      }]);
+    })();
+  </script>
+
+</body>
+</html>
